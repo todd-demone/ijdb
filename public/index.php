@@ -42,10 +42,16 @@ try {
         $jokes[] = $row['joketext'];
     }
     
+    $title = 'Joke list';
+
+    include __DIR__ . '/../templates/jokes.html.php';
+
+
 } catch(PDOException $e) {
     $output = 'Unable to connect to the database server.' . $e->getMessage() . 
     $e->getFile() . ':' . $e->getLine();
 }
 
 // include __DIR__ . '/../templates/output.html.php';
-include __DIR__ . '/../templates/jokes.html.php';
+// include __DIR__ . '/../templates/jokes.html.php';
+include __DIR__ . '/../templates/layout.html.php';
