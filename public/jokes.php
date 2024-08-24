@@ -3,12 +3,9 @@
 try {
   $pdo = new PDO('mysql:host=mysql;dbname=ijdb;charset=utf8mb4', 'ijdbuser', 'mypassword');
 
-  $sql = 'SELECT `joketext` FROM `joke`';
-  $result = $pdo->query($sql);
-
-  while ($row = $result->fetch()) {
-    $jokes[] = $row['joketext'];
-  }
+  $sql = 'SELECT `id`, `joketext` FROM `joke`';
+  
+  $jokes = $pdo->query($sql);
 
   $title = 'Joke list';
 
@@ -19,7 +16,9 @@ try {
   $output = ob_get_clean();
 
 } catch(PDOException $e) {
-    $output = 'Unable to connect to the database server.' . $e->getMessage() . 
+  $title = "An error occurred.";
+
+  $output = 'Unable to connect to the database server.' . $e->getMessage() . 
     $e->getFile() . ':' . $e->getLine();
 }
 
