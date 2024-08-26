@@ -8,6 +8,7 @@ function totalJokes($pdo) {
   return $row[0];
 }
 
+
 function getJoke($pdo, $id) {
   $stmt = $pdo->prepare('SELECT * FROM `joke` WHERE `id` = :id');
   
@@ -19,6 +20,7 @@ function getJoke($pdo, $id) {
 
   return $stmt->fetch();
 }
+
 
 function insertJoke($pdo, $joketext, $authorId) {
   $stmt = $pdo->prepare('INSERT INTO `joke` (`joketext`, `jokedate`, `authorId`)
@@ -32,6 +34,7 @@ function insertJoke($pdo, $joketext, $authorId) {
 
   $stmt->execute($values);
 }
+
 
 function updateJoke($pdo, $jokeId, $joketext, $authorId) {
   
@@ -47,4 +50,26 @@ function updateJoke($pdo, $jokeId, $joketext, $authorId) {
   ];
 
   $stmt->execute($values);
+}
+
+
+function deleteJoke($pdo, $id) {
+  $stmt = $pdo->prepare('DELETE FROM `joke` WHERE `id` = :id');
+
+  $values = [
+    ':id' => $id
+  ];
+
+  $stmt->execute($values);
+}
+
+
+function allJokes($pdo) {
+  $stmt = $pdo->prepare('SELECT `joke`.`id`, `joketext`, `name`, `email`
+  FROM `joke` INNER JOIN `author` 
+  ON `authorid` = `author`.`id`');
+
+  $stmt->execute();
+
+  return $stmt->fetchAll;
 }
