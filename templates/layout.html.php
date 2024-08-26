@@ -24,7 +24,7 @@
 </main>
 
 <footer>
-  &copy; IJDB 2021
+  &copy; IJDB 2024
 </footer>
 </body>
 </html>
