@@ -45,10 +45,13 @@ function insertJoke($pdo, $values) {
 
   $query .= ')';
 
+  $values = processDates($values);
+
   $stmt = $pdo->prepare($query);
   
   $stmt->execute($values);
 }
+
 
 function updateJoke($pdo, $values) {
 
@@ -66,6 +69,8 @@ function updateJoke($pdo, $values) {
   
   // Set the :primaryKey variable
   $values['primaryKey'] = $values['id'];
+
+  $values = processDates($values);
   
   $stmt = $pdo->prepare($query);
 
@@ -85,11 +90,22 @@ function deleteJoke($pdo, $id) {
 
 
 function allJokes($pdo) {
-  $stmt = $pdo->prepare('SELECT `joke`.`id`, `joketext`, `name`, `email`
+  $stmt = $pdo->prepare('SELECT `joke`.`id`, `joketext`, `jokedate`, `name`, `email`
   FROM `joke` INNER JOIN `author` 
   ON `authorid` = `author`.`id`');
 
   $stmt->execute();
 
   return $stmt->fetchAll();
+}
+
+
+function processDates($values) {
+  foreach ($values as $key => $value) {
+    if ($value instanceof DateTime) {
+      $values[$key] = $value->format('Y-m-d H:i:s');
+    }
+  }
+
+  return $values;
 }
