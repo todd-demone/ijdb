@@ -109,3 +109,45 @@ function processDates($values) {
 
   return $values;
 }
+
+
+function allAuthors($pdo) {
+  $stmt = $pdo->prepare('SELECT * FROM `author`');
+  $stmt->execute();
+  return $stmt->fetchAll();
+}
+
+
+function deleteAuthor($pdo, $id) {
+  $values = [':id' => $id];
+
+  $stmt = $pdo->prepare('DELETE FROM `author` WHERE `id` = :id');
+
+  $stmt->execute($values);
+}
+
+
+function insertAuthor($pdo, $values) {
+  $query = 'INSERT INTO `author` (';
+
+  foreach ($values as $key => $value) {
+    $query .= '`' . $key . '`,';
+  }
+
+  $query = rtrim($query, ',');
+
+  $query .= ') VALUES (';
+
+  foreach ($values as $key => $value) {
+    $query .= ':' . $key . ',';
+  }
+
+  $query = rtrim($query, ',');
+
+  $query .= ')';
+
+  $values = processDates($values);
+
+  $stmt = $pdo->prepare($query);
+  $stmt->execute($values);
+}
