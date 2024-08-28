@@ -1,26 +1,37 @@
 <?php
-
 try {
-  include __DIR__ . '/../includes/DatabaseConnection.php';
-  include __DIR__ . '/../includes/DatabaseFunctions.php';
-  
-  $jokes = allJokes($pdo);
+    include __DIR__ . '/../includes/DatabaseConnection.php';
+    include __DIR__ . '/../includes/DatabaseFunctions.php';
+    
+    $result = findAll($pdo, 'joke');
 
-  $title = 'Joke list';
+    $jokes = [];
+    foreach ($result as $joke) {
+        $author = find($pdo, 'author', 'id', $joke['authorid'])[0];
 
-  $totalJokes = totalJokes($pdo);
+    $jokes[] = [
+        'id' => $joke['id'],
+        'joketext' => $joke['joketext'],
+        'jokedate' => $joke['jokedate'],
+        'name' => $author['name'],
+        'email' => $author['email']
+    ];
+    }
 
-  ob_start();
+    $title = 'Joke list';
 
-  include __DIR__ . '/../templates/jokes.html.php';
+    $totalJokes = total($pdo, 'joke');
 
-  $output = ob_get_clean();
+    ob_start();
 
+    include __DIR__ . '/../templates/jokes.html.php';
+
+    $output = ob_get_clean();
 } catch(PDOException $e) {
-  $title = "An error occurred.";
+    $title = "An error occurred.";
 
-  $output = 'Unable to connect to the database server.' . $e->getMessage() . 
-    $e->getFile() . ':' . $e->getLine();
+    $output = 'Unable to connect to the database server.' . $e->getMessage() . 
+        $e->getFile() . ':' . $e->getLine();
 }
 
 include __DIR__ . '/../templates/layout.html.php';

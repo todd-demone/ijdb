@@ -1,102 +1,95 @@
 <?php
-function totalJokes($pdo) {
-  $stmt = $pdo->prepare('SELECT COUNT(*) FROM `joke`');
-  $stmt->execute();
 
-  $row = $stmt->fetch();
+function insert($pdo, $table, $values) {
+    $query = 'INSERT INTO ' . $table . ' (';
+    foreach ($values as $key => $value) {
+        $query .= '`' . $key . '`,';
+    }
+    $query = rtrim($query, ",");
 
-  return $row[0];
+    $query .= ') VALUES (';
+
+    foreach ($values as $key => $value) {
+        $query .= ':' . $key . ',';
+    }
+
+    $query = rtrim($query, ',');
+
+    $query .= ')';
+
+    $values = processDates($values);
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($values);
 }
 
 
-function getJoke($pdo, $id) {
-  $stmt = $pdo->prepare('SELECT * FROM `joke` WHERE `id` = :id');
-  
-  $values = [
-    ':id' => $id
-  ];
+function update($pdo, $table, $primaryKey, $values) {
 
-  $stmt->execute($values);
+    $query = 'UPDATE `' . $table . '` SET ';
 
-  return $stmt->fetch();
+
+    foreach ($values as $key => $value) {
+        $query .= '`' . $key . '` = :' . $key . ','; 
+    }
+
+    $query = rtrim($query, ',');
+
+    $query .= ' WHERE `' . $primaryKey . '` = :primaryKey';
+    $values['primaryKey'] = $values[$primaryKey];
+
+    $values = processDates($values);
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($values);
 }
 
 
-function insertJoke($pdo, $values) {
-  $query = 'INSERT INTO `joke` (';
-
-  $insertFields = [];
-
-  foreach ($values as $key => $value) {
-    $insertFields[] = '`' . $key . '`';
-  }
-
-  $query .= implode(', ', $insertFields);
-
-  $query = rtrim($query, ',');
-
-  $query .= ') VALUES (';
-
-  foreach ($values as $key => $value) {
-    $query .= ':' . $key . ',';
-  }
-
-  $query = rtrim($query, ',');
-
-  $query .= ')';
-
-  $values = processDates($values);
-
-  $stmt = $pdo->prepare($query);
-  
-  $stmt->execute($values);
+function save($pdo, $table, $primaryKey, $record) {
+    try {
+        if (empty($record[$primaryKey])) {
+            unset($record[$primaryKey]);
+        }
+        insert($pdo, $table, $record);
+    } catch (PDOException $e) {
+        update($pdo, $table, $primaryKey, $record);
+    }
 }
 
 
-function updateJoke($pdo, $values) {
+function delete($pdo, $table, $field, $value) {
+    $values = [':value' => $value];
 
-  $query = 'UPDATE `joke` SET ';
-
-  $updateFields = [];
-
-  foreach ($values as $key => $value) {
-    $updateFields[] = '`' . $key . '` = :' . $key;
-  }
-
-  $query .= implode(', ', $updateFields);
-
-  $query .= ' WHERE `id` = :primaryKey';
-  
-  // Set the :primaryKey variable
-  $values['primaryKey'] = $values['id'];
-
-  $values = processDates($values);
-  
-  $stmt = $pdo->prepare($query);
-
-  $stmt->execute($values);
+    $stmt = $pdo->prepare('DELETE FROM `' . $table . '` WHERE ' . $field . ' = :value');
+    $stmt->execute($values);
 }
 
 
-function deleteJoke($pdo, $id) {
-  $stmt = $pdo->prepare('DELETE FROM `joke` WHERE `id` = :id');
-
-  $values = [
-    ':id' => $id
-  ];
-
-  $stmt->execute($values);
+function findAll($pdo, $table) {
+    $stmt = $pdo->prepare('SELECT * FROM `' . $table . '`');
+    $stmt->execute();
+    return $stmt->fetchAll();
 }
 
 
-function allJokes($pdo) {
-  $stmt = $pdo->prepare('SELECT `joke`.`id`, `joketext`, `jokedate`, `name`, `email`
-  FROM `joke` INNER JOIN `author` 
-  ON `authorid` = `author`.`id`');
+function find($pdo, $table, $field, $value) {
+    $query = 'SELECT * FROM ' . $table . ' WHERE ' . $field . '= :value';
 
-  $stmt->execute();
+    $values = [
+        'value' => $value
+    ];
 
-  return $stmt->fetchAll();
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($values);
+
+    return $stmt->fetchAll();
+}
+
+
+function total($pdo, $table) {
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM `' . $table . '`');
+    $stmt->execute();
+    $row = $stmt->fetch();
+    return $row[0]; // is the [0] necessary for fetch()? ie needed for fetchAll()?
 }
 
 
@@ -108,46 +101,4 @@ function processDates($values) {
   }
 
   return $values;
-}
-
-
-function allAuthors($pdo) {
-  $stmt = $pdo->prepare('SELECT * FROM `author`');
-  $stmt->execute();
-  return $stmt->fetchAll();
-}
-
-
-function deleteAuthor($pdo, $id) {
-  $values = [':id' => $id];
-
-  $stmt = $pdo->prepare('DELETE FROM `author` WHERE `id` = :id');
-
-  $stmt->execute($values);
-}
-
-
-function insertAuthor($pdo, $values) {
-  $query = 'INSERT INTO `author` (';
-
-  foreach ($values as $key => $value) {
-    $query .= '`' . $key . '`,';
-  }
-
-  $query = rtrim($query, ',');
-
-  $query .= ') VALUES (';
-
-  foreach ($values as $key => $value) {
-    $query .= ':' . $key . ',';
-  }
-
-  $query = rtrim($query, ',');
-
-  $query .= ')';
-
-  $values = processDates($values);
-
-  $stmt = $pdo->prepare($query);
-  $stmt->execute($values);
 }
